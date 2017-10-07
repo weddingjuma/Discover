@@ -1,0 +1,12 @@
+ext {
+    android_support_lib_version = '26.1.0'
+    dagger2_version = '2.11'
+    butter_knife_version = '8.8.1'
+    retrofit2_version = '2.3.0'
+    android_lifecycle_version = '1.0.0-beta2'
+    android_room_version = '1.0.0-beta2'
+    espresso_verision = '3.0.1'
+    mockitoVersion = '1.10.19'
+    powerMockito = '1.6.2'
+    hamcrestVersion = '1.3'
+}
