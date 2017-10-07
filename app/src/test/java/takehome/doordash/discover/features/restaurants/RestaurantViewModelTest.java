@@ -19,7 +19,7 @@ import takehome.doordash.discover.test.model.restaurant.injections.DaggerTestDat
 @RunWith(JUnit4.class)
 public class RestaurantViewModelTest {
 
-    RestaurantViewModel viewModel;
+    private RestaurantViewModel viewModel;
 
     @Before
     public void setup(){
@@ -33,12 +33,26 @@ public class RestaurantViewModelTest {
         viewModel.getRestaurants(0, 0, true)
                 .test()
                 .assertSubscribed();
+        // Assert 5 restaurants.
         viewModel.getRestaurants(0, 0, true)
                 .test()
                 .assertValueAt(0, new Predicate<List<Restaurant>>() {
                     @Override
                     public boolean test(@NonNull List<Restaurant> restaurants) throws Exception {
-                        return restaurants.get(0).isFavorite;
+                        return restaurants.size() == 5;
+                    }
+                });
+        // Assert that the 2 favorited restaurants are sorted to the front.
+        viewModel.getRestaurants(0, 0, true)
+                .test()
+                .assertValueAt(0, new Predicate<List<Restaurant>>() {
+                    @Override
+                    public boolean test(@NonNull List<Restaurant> restaurants) throws Exception {
+                        return restaurants.get(0).isFavorite &&
+                                restaurants.get(1).isFavorite &&
+                                !restaurants.get(2).isFavorite &&
+                                !restaurants.get(3).isFavorite &&
+                                !restaurants.get(4).isFavorite;
                     }
                 });
     }

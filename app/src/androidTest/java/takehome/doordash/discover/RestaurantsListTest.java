@@ -63,19 +63,16 @@ public class RestaurantsListTest {
         onView(withText("Discover")).check(matches(isDisplayed()));
     }
 
-    /**
-     * Set one restaurant to be favorite restaurant.
-     *
-     * 1. Verify
-     */
     @Test
     public void set_one_restaurant_favorite() {
 
+        // 1. Assert that the first restaurant is "A Good Morning Cafe";
         onView(withRecyclerView(R.id.recycler_view).atPosition(0))
                 .check(matches(hasDescendant(Matchers.allOf(
                         withText("A Good Morning Cafe")
                 ))));
 
+        // TODO : Perform clicking on the favorite button.
         onView(withId(R.id.recycler_view))
                 .perform(RecyclerViewActions.scrollToPosition(0));
 
