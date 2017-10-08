@@ -68,12 +68,15 @@ public class RestaurantItemViewHolder extends RecyclerView.ViewHolder {
         if (data.coverImageUrl != null) {
             Picasso.with(itemView.getContext())
                     .load(data.coverImageUrl)
+                    .placeholder(android.R.color.darker_gray)
+                    .error(android.R.color.darker_gray)
                     .fit()
                     .centerCrop()
                     .into(imageLogo);
         } else {
             Picasso.with(itemView.getContext())
                     .load(R.drawable.ic_menu_share)
+                    .placeholder(android.R.color.darker_gray)
                     .into(imageLogo);
         }
     }

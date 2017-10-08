@@ -19,19 +19,16 @@ import takehome.doordash.discover.utils.AppSchedulers;
 public class TestRepoModule {
 
     @Provides
-    @Singleton
     public FavoriteRestaurantsDAO provideFavoriteRestaurantsDAO(){
         return new TestFavoriteRestaurantDAO();
     }
 
     @Provides
-    @Singleton
     public Executor provideThreadExecutor(){
         return Executors.newSingleThreadExecutor();
     }
 
     @Provides
-    @Singleton
     public FavoriteRestaurantModel provideFavoriteRestaurantModel(FavoriteRestaurantsDAO dao,
                                                                   Executor executor,
                                                                   AppSchedulers schedulers){

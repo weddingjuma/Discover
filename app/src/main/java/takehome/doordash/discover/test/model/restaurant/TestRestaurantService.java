@@ -31,7 +31,7 @@ public class TestRestaurantService implements RestaurantService {
     private static final String DATA = "[\n" +
             "\t{\n" +
             "\t    \"id\": 1,\n" +
-            "\t    \"name\": \"A Good Morning CafÃ©\",\n" +
+            "\t    \"name\": \"A Good Morning Cafe\",\n" +
             "\t    \"status_type\": \"open\",\n" +
             "\t    \"status\": \"48 mins\",\n" +
             "\t    \"description\": \"American, Breakfast & Brunch\",\n" +
@@ -43,7 +43,7 @@ public class TestRestaurantService implements RestaurantService {
             "\t    \"name\": \"Buon Giorno\",\n" +
             "\t    \"status_type\": \"open\",\n" +
             "\t    \"status\": \"23 mins\",\n" +
-            "\t    \"description\": \"Italian Cusine\",\n" +
+            "\t    \"description\": \"Italian Cuisine\",\n" +
             "\t    \"cover_img_url\": \"https://cdn.doordash.com/media/restaurant/cover/La-PanotiQ.png\",\n" +
             "\t    \"delivery_fee\": 2\n" +
             "    },\n" +
