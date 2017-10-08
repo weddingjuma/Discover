@@ -14,6 +14,8 @@ import android.support.v7.widget.SimpleItemAnimator;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.util.List;
@@ -23,6 +25,7 @@ import butterknife.ButterKnife;
 import io.reactivex.Completable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.BiConsumer;
 import io.reactivex.functions.Consumer;
 import takehome.doordash.discover.features.restaurants.RestaurantItemViewAdapter;
 import takehome.doordash.discover.features.restaurants.RestaurantViewModel;
@@ -47,6 +50,12 @@ public class MainActivity extends AppCompatActivity
 
     @BindView(R.id.recycler_view)
     RecyclerView recyclerView;
+
+    @BindView(R.id.loading_layout)
+    View loadingLayout;
+
+    @BindView(R.id.loading_progress)
+    ProgressBar loadingProgress;
 
     RestaurantViewModel viewModel;
 
@@ -100,35 +109,14 @@ public class MainActivity extends AppCompatActivity
                         }
                 })
         );
-        disposables.add(loadRestaurants());
+        disposables.add(loadRestaurants(false));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         // Load restaurant list.
-        disposables.add(loadRestaurants());
-    }
-
-    private Disposable loadRestaurants(){
-        return viewModel.getRestaurants(DOOR_DASH_HQ_LAT, DOOR_DASH_HQ_LONG, true)
-                .subscribe(new Consumer<List<Restaurant>>() {
-                    @Override
-                    public void accept(List<Restaurant> restaurants) throws Exception {
-                        adapter.setItems(restaurants);
-                        adapter.notifyDataSetChanged();
-                    }
-                }, new Consumer<Throwable>() {
-                    @Override
-                    public void accept(Throwable throwable) throws Exception {
-                        Log.e(TAG, "Error fetching restaurants : " + throwable.getMessage());
-                        throwable.printStackTrace();
-                        Toast.makeText(MainActivity.this,
-                                "Cannot fetch restaurants\nPlease refresh",
-                                Toast.LENGTH_SHORT)
-                                .show();
-                    }
-                });
+        disposables.add(loadRestaurants(false));
     }
 
     @Override
@@ -137,6 +125,13 @@ public class MainActivity extends AppCompatActivity
         // Cancel all pending actions.
         disposables.dispose();
     }
+
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *
+     *      Click Callbacks
+     *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
     @Override
     public void onBackPressed() {
@@ -162,7 +157,7 @@ public class MainActivity extends AppCompatActivity
         switch (item.getItemId()){
             case R.id.action_refresh:
                 viewModel.clearRestaurantCache();
-                disposables.add(loadRestaurants());
+                disposables.add(loadRestaurants(true));
                 break;
             case R.id.nav_gallery:
             case R.id.nav_manage:
@@ -171,5 +166,63 @@ public class MainActivity extends AppCompatActivity
         }
         drawer.closeDrawer(GravityCompat.START);
         return false;
+    }
+
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *
+     *      Data Methods
+     *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    private Disposable loadRestaurants(final boolean scrollToTopAfterLoaded){
+        return viewModel.getRestaurants(DOOR_DASH_HQ_LAT, DOOR_DASH_HQ_LONG, true)
+                .doOnSubscribe(new Consumer<Disposable>() {
+                    @Override
+                    public void accept(Disposable disposable) throws Exception {
+                        showLoading();
+                    }
+                })
+                .doOnEvent(new BiConsumer<List<Restaurant>, Throwable>() {
+                    @Override
+                    public void accept(List<Restaurant> restaurants, Throwable throwable) throws Exception {
+                        hideLoading();
+                    }
+                })
+                .subscribe(new Consumer<List<Restaurant>>() {
+                    @Override
+                    public void accept(List<Restaurant> restaurants) throws Exception {
+                        adapter.setItems(restaurants);
+                        adapter.notifyDataSetChanged();
+                        if (scrollToTopAfterLoaded) {
+                            recyclerView.scrollToPosition(0);
+                        }
+                    }
+                }, new Consumer<Throwable>() {
+                    @Override
+                    public void accept(Throwable throwable) throws Exception {
+                        Log.e(TAG, "Error fetching restaurants : " + throwable.getMessage());
+                        throwable.printStackTrace();
+                        Toast.makeText(MainActivity.this,
+                                "Cannot fetch restaurants\nPlease refresh",
+                                Toast.LENGTH_SHORT)
+                                .show();
+                    }
+                });
+    }
+
+
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+     *
+     *      UI Methods
+     *
+     * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+    private void showLoading(){
+        loadingLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void hideLoading(){
+        loadingLayout.setVisibility(View.GONE);
     }
 }
