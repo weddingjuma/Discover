@@ -23,7 +23,6 @@ import butterknife.ButterKnife;
 import io.reactivex.Completable;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import takehome.doordash.discover.features.restaurants.RestaurantItemViewAdapter;
 import takehome.doordash.discover.features.restaurants.RestaurantViewModel;

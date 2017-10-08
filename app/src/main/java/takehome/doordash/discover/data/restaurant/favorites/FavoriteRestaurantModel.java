@@ -13,6 +13,8 @@ import takehome.doordash.discover.model.restaurant.Restaurant;
 import takehome.doordash.discover.utils.AppSchedulers;
 
 /**
+ * The Model class of {@link FavoriteRestaurant}.
+ *
  * Created by jc on 10/6/17.
  */
 

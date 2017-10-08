@@ -24,6 +24,12 @@ import takehome.doordash.discover.model.restaurant.RestaurantService;
 import takehome.doordash.discover.utils.AppSchedulers;
 
 /**
+ * View Model class which provides access to the list of ordered/un-ordered
+ * {@link Restaurant}.
+ *
+ * All the reactive streams in this class will be observing on Android main
+ * thread by default.
+ *
  * Created by jc on 10/6/17.
  */
 
@@ -54,6 +60,18 @@ public class RestaurantViewModel extends ViewModel {
      *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
+    /**
+     * Returns a reactive stream of a query results of {@link Restaurant} near
+     * the given coordinate.
+     *
+     * If the data aren't fetched yet, {@link RestaurantService} shall make a request to
+     * DoorDash server and the result will be cached after it's fetched.
+     *
+     * @param latitude lat of location
+     * @param longitude long of location
+     * @param sortByFavorites whether to sort the favorite restaurants to the front.
+     * @return a {@link Single} of list of {@link Restaurant}.
+     */
     public Single<List<Restaurant>> getRestaurants(double latitude,
                                                        double longitude,
                                                        final boolean sortByFavorites){
@@ -88,6 +106,18 @@ public class RestaurantViewModel extends ViewModel {
                 .observeOn(schedulers.main());
     }
 
+    /**
+     * Returns a reactive stream of favorite saving action.
+     *
+     * This action happens asynchronously but will return
+     * callback on the main thread.
+     *
+     * This action also automatically invalidate favorites cache
+     * once the action is done.
+     *
+     * @param restaurant restaurant to be added to the favorite list.
+     * @return a {@link Completable}
+     */
     public Completable saveFavorite(Restaurant restaurant){
         return favoriteRestaurantModel
                 .addFavorite(restaurant)
@@ -100,6 +130,18 @@ public class RestaurantViewModel extends ViewModel {
                 .observeOn(schedulers.main());
     }
 
+    /**
+     * Returns a reactive stream of favorite deleting action.
+     *
+     * This action happens asynchronously but will return
+     * callback on the main thread.
+     *
+     * This action also automatically invalidate favorites cache
+     * once the action is done.
+     *
+     * @param restaurant restaurant to be removed from the favorite list.
+     * @return a {@link Completable}
+     */
     public Completable removeFavorite(Restaurant restaurant){
         return favoriteRestaurantModel
                 .removeFavorite(restaurant)
@@ -112,14 +154,23 @@ public class RestaurantViewModel extends ViewModel {
                 .observeOn(schedulers.main());
     }
 
+    /**
+     * Invalidates nearest restaurant query result.
+     */
     public void clearRestaurantCache(){
         restaurantsObs = null;
     }
 
-    public void clearFavoritesCache(){
+    /**
+     * Invalidates favorites restaurant list saved in memory.
+     */
+    private void clearFavoritesCache(){
         favoritesObs = null;
     }
 
+    /**
+     * Invalidate all data.
+     */
     public void clearCaches(){
         clearFavoritesCache();
         clearRestaurantCache();
