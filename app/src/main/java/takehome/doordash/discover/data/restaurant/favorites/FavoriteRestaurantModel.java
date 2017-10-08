@@ -7,9 +7,8 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Executor;
 
 import io.reactivex.Completable;
-import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
-import takehome.doordash.discover.data.DiscoverDataRepo;
+import io.reactivex.Single;
+import io.reactivex.functions.Action;
 import takehome.doordash.discover.model.restaurant.Restaurant;
 import takehome.doordash.discover.utils.AppSchedulers;
 
@@ -31,14 +30,13 @@ public class FavoriteRestaurantModel {
         this.schedulers = schedulers;
     }
 
-    public Observable<List<FavoriteRestaurant>> getFavorites(){
-        return Observable.defer(
-                new Callable<ObservableSource<? extends List<FavoriteRestaurant>>>() {
-                    @Override
-                    public ObservableSource<? extends List<FavoriteRestaurant>> call() throws Exception {
-                        return Observable.just(dao.getFavoriteRestaurants());
-                    }
-                })
+    public Single<List<FavoriteRestaurant>> getFavorites(){
+        return Single.fromCallable(new Callable<List<FavoriteRestaurant>>() {
+            @Override
+            public List<FavoriteRestaurant> call() throws Exception {
+                return dao.getFavoriteRestaurants();
+            }
+        })
                 .subscribeOn(schedulers.from(executor))
                 .observeOn(schedulers.main());
     }
@@ -48,9 +46,9 @@ public class FavoriteRestaurantModel {
     }
 
     public Completable addFavorite(@NonNull final FavoriteRestaurant restaurant){
-        return Completable.fromRunnable(new Runnable() {
+        return Completable.fromAction(new Action() {
             @Override
-            public void run() {
+            public void run() throws Exception {
                 dao.addFavoriteRestaurant(restaurant);
             }
         }).subscribeOn(schedulers.from(executor));
@@ -61,15 +59,9 @@ public class FavoriteRestaurantModel {
     }
 
     public Completable removeFavorite(@NonNull final FavoriteRestaurant restaurant){
-        executor.execute(new Runnable() {
+        return Completable.fromAction(new Action() {
             @Override
-            public void run() {
-                dao.deleteFavoriteRestaurant(restaurant);
-            }
-        });
-        return Completable.fromRunnable(new Runnable() {
-            @Override
-            public void run() {
+            public void run() throws Exception {
                 dao.deleteFavoriteRestaurant(restaurant);
             }
         }).subscribeOn(schedulers.from(executor));

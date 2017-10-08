@@ -9,7 +9,7 @@ import takehome.doordash.discover.data.restaurant.favorites.FavoriteRestaurantsD
 /**
  * Created by jc on 10/6/17.
  */
-@Database(entities = {FavoriteRestaurant.class}, version = 1)
+@Database(entities = {FavoriteRestaurant.class}, version = 1, exportSchema = false)
 public abstract class DiscoverDataRepo extends RoomDatabase {
 
     public abstract FavoriteRestaurantsDAO favoriteRestaurantQueries();

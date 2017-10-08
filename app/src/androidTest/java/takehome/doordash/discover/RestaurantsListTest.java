@@ -1,7 +1,6 @@
 package takehome.doordash.discover;
 
 import android.support.annotation.IdRes;
-import android.support.test.InstrumentationRegistry;
 import android.support.test.espresso.UiController;
 import android.support.test.espresso.ViewAction;
 import android.support.test.espresso.contrib.RecyclerViewActions;
@@ -20,16 +19,12 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import takehome.doordash.discover.features.restaurants.RestaurantItemViewHolder;
-import takehome.doordash.discover.injections.InjectionGraphs;
-import takehome.doordash.discover.test.model.restaurant.injections.DaggerTestDataComponent;
-import takehome.doordash.discover.test.model.restaurant.injections.TestRepoModule;
 
 import static android.support.test.espresso.Espresso.onView;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
 import static android.support.test.espresso.matcher.ViewMatchers.withId;
-import static android.support.test.espresso.matcher.ViewMatchers.withResourceName;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 
 /**
@@ -45,17 +40,11 @@ public class RestaurantsListTest {
         @Override
         protected void beforeActivityLaunched() {
             super.beforeActivityLaunched();
-            InjectionGraphs.initialize(DaggerTestDataComponent
-                    .builder()
-                    .build());
         }
     };
 
     @Before
     public void setup(){
-        InjectionGraphs.initialize(DaggerTestDataComponent
-                .builder()
-                .build());
     }
 
     @Test
@@ -76,7 +65,7 @@ public class RestaurantsListTest {
         onView(withId(R.id.recycler_view))
                 .perform(RecyclerViewActions.scrollToPosition(0));
 
-//        onView(withResourceName("ic_star_black_24dp")).check(matches(isFavorite()));
+//        onView(withResourceName("ic_star_24dp")).check(matches(isFavorite()));
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * *
@@ -113,7 +102,7 @@ public class RestaurantsListTest {
         return new TypeSafeMatcher<String>() {
             @Override
             protected boolean matchesSafely(String item) {
-                return "ic_star_black_24dp".equals(item);
+                return "ic_star_24dp".equals(item);
             }
 
             @Override
@@ -127,7 +116,7 @@ public class RestaurantsListTest {
         return new TypeSafeMatcher<RestaurantItemViewHolder>() {
             @Override
             protected boolean matchesSafely(RestaurantItemViewHolder item) {
-                return item.isFavorited;
+                return item.isFavorite;
             }
 
             @Override

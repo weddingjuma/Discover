@@ -12,15 +12,13 @@ import java.util.Set;
 import javax.inject.Inject;
 
 import io.reactivex.Completable;
-import io.reactivex.Observable;
+import io.reactivex.Single;
 import io.reactivex.annotations.NonNull;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.BiFunction;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import takehome.doordash.discover.data.restaurant.favorites.FavoriteRestaurant;
 import takehome.doordash.discover.data.restaurant.favorites.FavoriteRestaurantModel;
-import takehome.doordash.discover.injections.DataComponent;
-import takehome.doordash.discover.injections.InjectionGraphs;
 import takehome.doordash.discover.model.restaurant.Restaurant;
 import takehome.doordash.discover.model.restaurant.RestaurantService;
 import takehome.doordash.discover.utils.AppSchedulers;
@@ -40,17 +38,8 @@ public class RestaurantViewModel extends ViewModel {
     @Inject
     AppSchedulers schedulers;
 
-    private Observable<List<Restaurant>> restaurantsObs;
-    private Observable<List<FavoriteRestaurant>> favoritesObs;
-
-    public RestaurantViewModel(){
-        InjectionGraphs.data.inject(this);
-    }
-
-    public RestaurantViewModel(@android.support.annotation.NonNull DataComponent dataComponent){
-        dataComponent.inject(this);
-    }
-
+    private Single<List<Restaurant>> restaurantsObs;
+    private Single<List<FavoriteRestaurant>> favoritesObs;
 
     @Override
     protected void onCleared() {
@@ -65,9 +54,9 @@ public class RestaurantViewModel extends ViewModel {
      *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
-    public Observable<List<Restaurant>> getRestaurants(double latitude,
+    public Single<List<Restaurant>> getRestaurants(double latitude,
                                                        double longitude,
-                                                       final boolean sortFavorites){
+                                                       final boolean sortByFavorites){
         if (restaurantsObs == null) {
             restaurantsObs = service.getRestaurants(latitude, longitude)
                     .subscribeOn(schedulers.io())
@@ -77,7 +66,7 @@ public class RestaurantViewModel extends ViewModel {
             favoritesObs = favoriteRestaurantModel.getFavorites()
                     .cache();
         }
-        return Observable.combineLatest(restaurantsObs, favoritesObs, new BiFunction<List<Restaurant>, List<FavoriteRestaurant>, Pair<List<Restaurant>, List<FavoriteRestaurant>>>() {
+        return Single.zip(restaurantsObs, favoritesObs, new BiFunction<List<Restaurant>, List<FavoriteRestaurant>, Pair<List<Restaurant>, List<FavoriteRestaurant>>>() {
             @Override
             public Pair<List<Restaurant>, List<FavoriteRestaurant>> apply(@NonNull List<Restaurant> restaurants, @NonNull List<FavoriteRestaurant> favorites) throws Exception {
                 return new Pair<>(restaurants, favorites);
@@ -86,13 +75,13 @@ public class RestaurantViewModel extends ViewModel {
                 .map(new Function<Pair<List<Restaurant>, List<FavoriteRestaurant>>, List<Restaurant>>() {
                     @Override
                     public List<Restaurant> apply(@NonNull Pair<List<Restaurant>, List<FavoriteRestaurant>> pair) throws Exception {
-                        return sortFavorites ? markFavorites(pair.first, pair.second) : pair.first;
+                        return markFavorites(pair.first, pair.second);
                     }
                 })
                 .map(new Function<List<Restaurant>, List<Restaurant>>() {
                     @Override
                     public List<Restaurant> apply(@NonNull List<Restaurant> restaurants) throws Exception {
-                        return sortFavorites ? sortFavorites(restaurants) : restaurants;
+                        return sortByFavorites ? sortFavorites(restaurants) : restaurants;
                     }
                 })
                 .subscribeOn(schedulers.computation())
@@ -102,12 +91,24 @@ public class RestaurantViewModel extends ViewModel {
     public Completable saveFavorite(Restaurant restaurant){
         return favoriteRestaurantModel
                 .addFavorite(restaurant)
+                .doOnComplete(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        clearFavoritesCache();
+                    }
+                })
                 .observeOn(schedulers.main());
     }
 
     public Completable removeFavorite(Restaurant restaurant){
         return favoriteRestaurantModel
                 .removeFavorite(restaurant)
+                .doOnComplete(new Action() {
+                    @Override
+                    public void run() throws Exception {
+                        clearFavoritesCache();
+                    }
+                })
                 .observeOn(schedulers.main());
     }
 
@@ -132,13 +133,9 @@ public class RestaurantViewModel extends ViewModel {
 
     private static List<Restaurant> markFavorites(List<Restaurant> restaurants, List<FavoriteRestaurant> favorites){
         final Set<Integer> favoriteIds = new HashSet<>();
-        Observable.fromIterable(favorites)
-                .forEach(new Consumer<FavoriteRestaurant>() {
-                    @Override
-                    public void accept(FavoriteRestaurant restaurant) throws Exception {
-                        favoriteIds.add(restaurant.id);
-                    }
-                });
+        for (FavoriteRestaurant favorite: favorites) {
+            favoriteIds.add(favorite.id);
+        }
         for(Restaurant restaurant : restaurants){
             restaurant.isFavorite = favoriteIds.contains(restaurant.id);
         }

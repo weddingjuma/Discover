@@ -40,7 +40,7 @@ public class RestaurantItemViewHolder extends RecyclerView.ViewHolder {
     @BindView(R.id.text_status)
     public TextView textStatus;
 
-    public boolean isFavorited;
+    public boolean isFavorite;
 
     RestaurantItemViewHolder(View itemView, @Nullable final ClickListener clickListener) {
         super(itemView);
@@ -58,12 +58,12 @@ public class RestaurantItemViewHolder extends RecyclerView.ViewHolder {
     }
 
     void bind(@NonNull Restaurant data){
-        isFavorited = data.isFavorite;
+        isFavorite = data.isFavorite;
         textName.setText(data.name);
         textType.setText(data.description);
         buttonFavorite.setImageResource(data.isFavorite
-                ? R.drawable.ic_star_black_24dp
-                : R.drawable.ic_star_border_black_24dp);
+                ? R.drawable.ic_star_24dp
+                : R.drawable.ic_star_border_24dp);
         textStatus.setText(data.status);
         if (data.coverImageUrl != null) {
             Picasso.with(itemView.getContext())

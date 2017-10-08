@@ -3,7 +3,6 @@ package takehome.doordash.discover.test.model.restaurant.injections;
 import javax.inject.Singleton;
 
 import dagger.Component;
-import takehome.doordash.discover.features.restaurants.RestaurantViewModel;
 import takehome.doordash.discover.injections.DataComponent;
 
 /**

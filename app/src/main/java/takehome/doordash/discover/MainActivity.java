@@ -72,6 +72,7 @@ public class MainActivity extends AppCompatActivity
 
         // Data Model
         viewModel = ViewModelProviders.of(this).get(RestaurantViewModel.class);
+        Discover.injectionGraph().inject(viewModel);
         adapter = new RestaurantItemViewAdapter();
 
         // Recycler View setup
@@ -96,18 +97,7 @@ public class MainActivity extends AppCompatActivity
                             } else {
                                 action = viewModel.removeFavorite(restaurant);
                             }
-                            action.subscribe(new Action() {
-                                @Override
-                                public void run() throws Exception {
-                                    viewModel.clearFavoritesCache();
-                                }
-                            }, new Consumer<Throwable>() {
-                                @Override
-                                public void accept(Throwable throwable) throws Exception {
-                                    Log.e(TAG, "Error reloading restaurants : " + throwable.getMessage());
-                                    throwable.printStackTrace();
-                                }
-                            });
+                            disposables.add(action.subscribe());
                         }
                 })
         );

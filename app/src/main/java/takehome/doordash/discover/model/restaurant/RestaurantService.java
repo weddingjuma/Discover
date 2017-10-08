@@ -2,7 +2,7 @@ package takehome.doordash.discover.model.restaurant;
 
 import java.util.List;
 
-import io.reactivex.Observable;
+import io.reactivex.Single;
 import retrofit2.http.GET;
 import retrofit2.http.Query;
 
@@ -13,7 +13,7 @@ import retrofit2.http.Query;
 public interface RestaurantService {
 
     @GET("v2/restaurant")
-    Observable<List<Restaurant>> getRestaurants(
+    Single<List<Restaurant>> getRestaurants(
             @Query("lat") double latitude,
             @Query("lng") double longitude
     );

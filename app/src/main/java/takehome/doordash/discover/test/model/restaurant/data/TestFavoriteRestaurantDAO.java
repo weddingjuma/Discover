@@ -2,9 +2,12 @@ package takehome.doordash.discover.test.model.restaurant.data;
 
 import android.support.annotation.NonNull;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import takehome.doordash.discover.data.restaurant.favorites.FavoriteRestaurant;
 import takehome.doordash.discover.data.restaurant.favorites.FavoriteRestaurantsDAO;
 
@@ -14,26 +17,34 @@ import takehome.doordash.discover.data.restaurant.favorites.FavoriteRestaurantsD
 
 public class TestFavoriteRestaurantDAO implements FavoriteRestaurantsDAO {
 
-    private List<FavoriteRestaurant> restaurants;
+    private Set<Integer> restaurantIds;
 
     public TestFavoriteRestaurantDAO() {
-        restaurants = new ArrayList<>();
-        restaurants.add(new FavoriteRestaurant(3));
-        restaurants.add(new FavoriteRestaurant(1));
+        restaurantIds = new HashSet<>();
+        restaurantIds.add(3);
+        restaurantIds.add(8);
+        restaurantIds.add(1);
     }
 
     @Override
     public List<FavoriteRestaurant> getFavoriteRestaurants() {
-        return restaurants;
+        return Observable.fromIterable(restaurantIds).map(new Function<Integer, FavoriteRestaurant>() {
+            @Override
+            public FavoriteRestaurant apply(@io.reactivex.annotations.NonNull Integer id) throws Exception {
+                return new FavoriteRestaurant(id);
+            }
+        })
+                .toList()
+                .blockingGet();
     }
 
     @Override
     public void addFavoriteRestaurant(@NonNull FavoriteRestaurant restaurant) {
-        // TODO : Implement later.
+        restaurantIds.add(restaurant.id);
     }
 
     @Override
     public void deleteFavoriteRestaurant(@NonNull FavoriteRestaurant restaurant) {
-        // TODO : Implement later.
+        restaurantIds.remove(restaurant.id);
     }
 }
