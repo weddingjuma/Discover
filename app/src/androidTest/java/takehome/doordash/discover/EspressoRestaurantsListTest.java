@@ -4,9 +4,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.IdRes;
 import android.support.test.InstrumentationRegistry;
+import android.support.test.espresso.contrib.DrawerActions;
+import android.support.test.espresso.contrib.DrawerMatchers;
+import android.support.test.espresso.contrib.NavigationViewActions;
 import android.support.test.filters.LargeTest;
 import android.support.test.rule.ActivityTestRule;
 import android.support.test.runner.AndroidJUnit4;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -27,6 +31,7 @@ import static android.support.test.espresso.action.ViewActions.click;
 import static android.support.test.espresso.assertion.ViewAssertions.matches;
 import static android.support.test.espresso.matcher.ViewMatchers.hasDescendant;
 import static android.support.test.espresso.matcher.ViewMatchers.isDisplayed;
+import static android.support.test.espresso.matcher.ViewMatchers.withId;
 import static android.support.test.espresso.matcher.ViewMatchers.withText;
 import static org.hamcrest.Matchers.allOf;
 import static takehome.doordash.discover.utils.DrawableMatcher.withDrawable;
@@ -81,7 +86,6 @@ public class EspressoRestaurantsListTest {
         onView(withText("Pad")).check(matches(isDisplayed()));
         onView(withText("Buon Giorno")).check(matches(isDisplayed()));
         onView(withText("Golden Dragon")).check(matches(isDisplayed()));
-        onView(withText("Bon me")).check(matches(isDisplayed()));
     }
 
     @Test
@@ -133,22 +137,24 @@ public class EspressoRestaurantsListTest {
                                 hasDescendant(withDrawable(R.drawable.ic_star_border_24dp))
                         )
                 ));
-
-        onView(withRecyclerView(R.id.recycler_view).atPosition(5))
-                .check(matches(
-                        allOf(
-                                hasDescendant(withText("Bon me")),
-                                hasDescendant(withText("Vietnamese Sandwich")),
-                                hasDescendant(withText("35 mins")),
-                                hasDescendant(withDrawable(R.drawable.ic_star_border_24dp))
-                        )
-                ));
     }
 
     @Test
     public void add_favorite_restaurant() {
         launchMainActivity();
 
+        // Assert original favorite state
+        onView(withRecyclerView(R.id.recycler_view).atPosition(4))
+                .check(matches(
+                        allOf(
+                                hasDescendant(withText("Golden Dragon")),
+                                hasDescendant(withText("Chinese")),
+                                hasDescendant(withText("5 mins")),
+                                hasDescendant(withDrawable(R.drawable.ic_star_border_24dp))
+                        )
+                ));
+
+        // Check favorite
         onView(allOf(
                 childWithId(
                         withRecyclerView(R.id.recycler_view).atPosition(4),
@@ -157,7 +163,22 @@ public class EspressoRestaurantsListTest {
                 isDisplayed()
         )).perform(click());
 
+        // Assert favorite state
         onView(withRecyclerView(R.id.recycler_view).atPosition(4))
+                .check(matches(
+                        allOf(
+                                hasDescendant(withText("Golden Dragon")),
+                                hasDescendant(withText("Chinese")),
+                                hasDescendant(withText("5 mins")),
+                                hasDescendant(withDrawable(R.drawable.ic_star_24dp))
+                        )
+                ));
+
+        // Perform reload on date
+        click_refresh();
+
+        // Assert item position after reload
+        onView(withRecyclerView(R.id.recycler_view).atPosition(3))
                 .check(matches(
                         allOf(
                                 hasDescendant(withText("Golden Dragon")),
@@ -172,6 +193,18 @@ public class EspressoRestaurantsListTest {
     public void remove_favorite_restaurant() {
         launchMainActivity();
 
+        // Assert original favorite state
+        onView(withRecyclerView(R.id.recycler_view).atPosition(0))
+                .check(matches(
+                        allOf(
+                                hasDescendant(withText("A Good Morning Cafe")),
+                                hasDescendant(withText("American, Breakfast & Brunch")),
+                                hasDescendant(withText("48 mins")),
+                                hasDescendant(withDrawable(R.drawable.ic_star_24dp))
+                        )
+                ));
+
+        // Uncheck favorite
         onView(allOf(
                 childWithId(
                         withRecyclerView(R.id.recycler_view).atPosition(0),
@@ -180,6 +213,7 @@ public class EspressoRestaurantsListTest {
                 isDisplayed()
         )).perform(click());
 
+        // Assert favorite state
         onView(withRecyclerView(R.id.recycler_view).atPosition(0))
                 .check(matches(
                         allOf(
@@ -189,6 +223,44 @@ public class EspressoRestaurantsListTest {
                                 hasDescendant(withDrawable(R.drawable.ic_star_border_24dp))
                         )
                 ));
+
+        // Perform reload on date
+        click_refresh();
+
+        // Assert item position after reload
+        onView(withRecyclerView(R.id.recycler_view).atPosition(2))
+                .check(matches(
+                        allOf(
+                                hasDescendant(withText("A Good Morning Cafe")),
+                                hasDescendant(withText("American, Breakfast & Brunch")),
+                                hasDescendant(withText("48 mins")),
+                                hasDescendant(withDrawable(R.drawable.ic_star_border_24dp))
+                        )
+                ));
+    }
+
+    /**
+     * Helper method to perform data reload. (Refresh button)
+     */
+    private void click_refresh(){
+        onView(
+                allOf(
+                        withId(R.id.drawer_layout),
+                        isDisplayed()
+                ))
+                .check(matches(DrawerMatchers.isClosed(Gravity.LEFT)))
+                .perform(DrawerActions.open());
+
+        onView(withId(R.id.nav_view))
+                .perform(NavigationViewActions.navigateTo(R.id.action_refresh));
+
+        onView(
+                allOf(
+                        withId(R.id.drawer_layout),
+                        isDisplayed()
+                ))
+                .check(matches(DrawerMatchers.isOpen()))
+                .perform(DrawerActions.close());
     }
 
     /* * * * * * * * * * * * * * * * * * * * * * * *
