@@ -14,6 +14,7 @@ import android.view.ViewParent;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.hamcrest.TypeSafeMatcher;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -51,6 +52,11 @@ public class EspressoRestaurantsListTest {
          * and before RestaurantViewModel is injected.
          */
         Discover.setDemoMode(true);
+    }
+
+    @After
+    public void cleanUp(){
+        Discover.resetTest();
     }
 
     private void launchMainActivity(){

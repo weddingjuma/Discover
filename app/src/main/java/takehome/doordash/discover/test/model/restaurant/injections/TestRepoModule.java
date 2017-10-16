@@ -29,6 +29,7 @@ public class TestRepoModule {
     }
 
     @Provides
+    @Singleton
     public FavoriteRestaurantModel provideFavoriteRestaurantModel(FavoriteRestaurantsDAO dao,
                                                                   Executor executor,
                                                                   AppSchedulers schedulers){

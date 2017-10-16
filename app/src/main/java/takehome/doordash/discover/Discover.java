@@ -1,6 +1,8 @@
 package takehome.doordash.discover;
 
 import android.app.Application;
+import android.content.Context;
+import android.support.annotation.NonNull;
 
 import takehome.doordash.discover.injections.DaggerProductionDataComponent;
 import takehome.doordash.discover.injections.DataComponent;
@@ -25,14 +27,8 @@ public class Discover extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        productionDataGraph = DaggerProductionDataComponent
-                .builder()
-                .repoModule(new RepoModule(getApplicationContext()))
-                .build();
-        demoDataGraph = DaggerTestDataComponent
-                .builder()
-                .testSchedulersModule(new TestSchedulersModule(AppSchedulers.PRODUCTION))
-                .build();
+        productionDataGraph = createProductionDataGraph(getApplicationContext());
+        demoDataGraph = createTestDataGraph();
     }
 
     public static DataComponent injectionGraph(){
@@ -43,7 +39,25 @@ public class Discover extends Application {
         isDemoMode = demo;
     }
 
+    public static void resetTest(){
+        demoDataGraph = createTestDataGraph();
+    }
+
     public static boolean isDemoMode(){
         return isDemoMode;
+    }
+
+    private static ProductionDataComponent createProductionDataGraph(@NonNull Context context){
+        return DaggerProductionDataComponent
+                .builder()
+                .repoModule(new RepoModule(context))
+                .build();
+    }
+
+    private static TestDataComponent createTestDataGraph(){
+        return DaggerTestDataComponent
+                .builder()
+                .testSchedulersModule(new TestSchedulersModule(AppSchedulers.PRODUCTION))
+                .build();
     }
 }
