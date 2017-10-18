@@ -24,7 +24,7 @@ public class TestRestaurantService implements RestaurantService {
     }
 
     @Override
-    public Single<List<Restaurant>> getRestaurants(double latitude, double longitude) {
+    public Single<List<Restaurant>> getRestaurants(double latitude, double longitude, int offset, int limit) {
         return Single.just(testData);
     }
 

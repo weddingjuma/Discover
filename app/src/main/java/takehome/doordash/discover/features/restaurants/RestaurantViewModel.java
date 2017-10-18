@@ -3,6 +3,7 @@ package takehome.doordash.discover.features.restaurants;
 import android.arch.lifecycle.ViewModel;
 import android.support.v4.util.Pair;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -35,6 +36,8 @@ import takehome.doordash.discover.utils.AppSchedulers;
 
 public class RestaurantViewModel extends ViewModel {
 
+    private static final int PAGE_SIZE = 20;
+
     @Inject
     FavoriteRestaurantModel favoriteRestaurantModel;
 
@@ -46,6 +49,8 @@ public class RestaurantViewModel extends ViewModel {
 
     private Single<List<Restaurant>> restaurantsObs;
     private Single<List<FavoriteRestaurant>> favoritesObs;
+
+    private List<Restaurant> items = new ArrayList<>();
 
     @Override
     protected void onCleared() {
@@ -60,9 +65,18 @@ public class RestaurantViewModel extends ViewModel {
      *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
+    public class RestaurantPage {
+        public int offset;
+        public int limit;
+        public List<Restaurant> newRestaurants;
+    }
+
     /**
-     * Returns a reactive stream of a query results of {@link Restaurant} near
+     * Returns a reactive stream of a list of {@link Restaurant} near
      * the given coordinate.
+     *
+     * The list will be the aggregated list of {@link Restaurant}.
+     * If the list is empty, it will fetch the first page automatically.
      *
      * If the data aren't fetched yet, {@link RestaurantService} shall make a request to
      * DoorDash server and the result will be cached after it's fetched.
@@ -76,9 +90,20 @@ public class RestaurantViewModel extends ViewModel {
                                                        double longitude,
                                                        final boolean sortByFavorites){
         if (restaurantsObs == null) {
-            restaurantsObs = service.getRestaurants(latitude, longitude)
-                    .subscribeOn(schedulers.io())
-                    .cache();
+            // Use either cached aggregated list or fetch the first page.
+            Single<List<Restaurant>> stream = !items.isEmpty()
+                    ? Single.just(items)
+                    : service.getRestaurants(latitude, longitude, 0, PAGE_SIZE)
+                    .map(new Function<List<Restaurant>, List<Restaurant>>() {
+                        @Override
+                        public List<Restaurant> apply(@NonNull List<Restaurant> restaurants) throws Exception {
+                            // Aggregate the new page.
+                            items.addAll(restaurants);
+                            return items;
+                        }}
+                    );
+            restaurantsObs = stream
+                    .subscribeOn(schedulers.io());
         }
         if (favoritesObs == null) {
             favoritesObs = favoriteRestaurantModel.getFavorites()
@@ -103,6 +128,35 @@ public class RestaurantViewModel extends ViewModel {
                     }
                 })
                 .subscribeOn(schedulers.computation())
+                .observeOn(schedulers.main());
+    }
+
+    /**
+     * Returns a reactive stream of a new page of {@link Restaurant} near the
+     * the given coordinate.
+     * @param latitude
+     * @param longitude
+     * @return
+     */
+    public Single<RestaurantPage> loadMoreRestaurants(double latitude, double longitude){
+        final int offset = items.size();
+        return service.getRestaurants(latitude, longitude, offset, PAGE_SIZE)
+                .map(new Function<List<Restaurant>, RestaurantPage>() {
+                    @Override
+                    public RestaurantPage apply(@NonNull List<Restaurant> restaurants) throws Exception {
+                        // Aggregate the new page.
+                        items.addAll(restaurants);
+
+                        // Create restaurant page.
+                        RestaurantPage page = new RestaurantPage();
+                        page.offset = offset;
+                        page.limit = PAGE_SIZE;
+                        page.newRestaurants = restaurants;
+
+                        return page;
+                    }
+                })
+                .subscribeOn(schedulers.io())
                 .observeOn(schedulers.main());
     }
 

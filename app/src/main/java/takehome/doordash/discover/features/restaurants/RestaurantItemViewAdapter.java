@@ -34,6 +34,10 @@ public class RestaurantItemViewAdapter extends RecyclerView.Adapter<RestaurantIt
         items.addAll(restaurants);
     }
 
+    public void addItems(@NonNull List<Restaurant> newRestaurants){
+        items.addAll(newRestaurants);
+    }
+
     public Observable<Restaurant> observeFavoriteChanged(){
         return favoriteClickSub;
     }

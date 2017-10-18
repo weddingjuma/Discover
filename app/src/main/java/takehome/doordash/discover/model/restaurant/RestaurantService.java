@@ -15,7 +15,9 @@ public interface RestaurantService {
     @GET("v2/restaurant")
     Single<List<Restaurant>> getRestaurants(
             @Query("lat") double latitude,
-            @Query("lng") double longitude
+            @Query("lng") double longitude,
+            @Query("offset") int offset,
+            @Query("limit") int limit
     );
 
 }
